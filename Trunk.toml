@@ -1,3 +1,8 @@
 [build]
 target = "index.html"
 dist = "dist"
+
+[[hooks]]
+stage = "pre_build"
+command = "powershell"
+command_arguments = ["npx", "tailwindcss", "-i", "public/index.css", "-o", "public/tailwind.css"]

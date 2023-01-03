@@ -25,6 +25,9 @@ pub fn home() -> Html {
                     rel="noopener noreferrer"
                 >
                 </a>
+                <h1 class="text-3xl font-bold underline">
+                    { "Hello world!" }
+                </h1>
                 <p>
                     { "Edit " } <code>{ "src/routes/home.rs" }</code> { " and save to reload." }
                 </p>

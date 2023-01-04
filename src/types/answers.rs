@@ -4,7 +4,13 @@ use chrono::prelude::*;
 pub trait Answer {
     fn answer(&self) -> &str;
 
-    fn length(&self) -> usize;
+    fn word_length(&self) -> usize {
+        5
+    }
+
+    fn trial_bound(&self) -> usize {
+        6
+    }
 }
 
 pub struct StandardWordle;
@@ -27,7 +33,11 @@ impl Answer for StandardWordle {
         STANDARD_WORDS[days as usize]
     }
 
-    fn length(&self) -> usize {
+    fn word_length(&self) -> usize {
         5
+    }
+
+    fn trial_bound(&self) -> usize {
+        6
     }
 }

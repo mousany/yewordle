@@ -6,16 +6,32 @@ pub enum LetterState {
     Absent,
 }
 
+pub fn match_letter_state(letter_state: LetterState) -> String {
+    match letter_state {
+        LetterState::Initial => "".to_string(),
+        LetterState::Correct => "correct".to_string(),
+        LetterState::Present => "present".to_string(),
+        LetterState::Absent => "absent".to_string(),
+    }
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct Tile {
-    letter: char,
-    state: LetterState,
+    pub letter: Option<char>,
+    pub state: LetterState,
 }
 
 impl Tile {
     pub fn new(letter: char) -> Self {
         Self {
-            letter,
+            letter: Some(letter),
+            state: LetterState::Initial,
+        }
+    }
+
+    pub fn none() -> Self {
+        Self {
+            letter: None,
             state: LetterState::Initial,
         }
     }

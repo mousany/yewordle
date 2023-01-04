@@ -1,14 +1,26 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, vec};
 
 use lazy_static::lazy_static;
 use stylist::yew::{styled_component, use_style};
 use yew::prelude::*;
 
-use crate::types::letters::LetterState;
+use crate::types::letters::{match_letter_state, LetterState};
+
+lazy_static! {
+    pub static ref INIT_LETTER_STATES: HashMap<char, LetterState> = {
+        let mut map = HashMap::new();
+        for letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ".chars() {
+            map.insert(letter, LetterState::Initial);
+        }
+        map
+    };
+}
 
 #[derive(Clone, Debug, PartialEq, Properties)]
-struct Props {
-    letter_states: HashMap<String, LetterState>,
+pub struct KeyboardProps {
+    #[prop_or(HashMap::new())]
+    pub letter_states: HashMap<char, LetterState>,
+    pub onkeyup: Callback<String>,
 }
 
 lazy_static! {
@@ -21,7 +33,12 @@ lazy_static! {
 }
 
 #[styled_component(Keyboard)]
-pub fn keyboard() -> Html {
+pub fn keyboard(props: &KeyboardProps) -> Html {
+    let KeyboardProps {
+        letter_states,
+        onkeyup,
+    } = props;
+
     let keyboard_style = use_style!(
         r#"
           margin: 30px 8px 0;
@@ -83,13 +100,30 @@ pub fn keyboard() -> Html {
               }
               { for row.iter().enumerate().map(|(col_index, key)| {
                 html! {
-                  <button style={
-                    if key.len() > 1 {
-                      "flex: 1.5;"
-                    } else {
-                      ""
+                  <button
+                    onclick={
+                      let onkeyup = onkeyup.clone();
+                      Callback::from(move |_| {
+                        onkeyup.emit(String::from(*key));
+                      })
                     }
-                  }>
+                    style={
+                      if key.len() > 1 {
+                        "flex: 1.5;"
+                      } else {
+                        ""
+                      }
+                    }
+                    class={
+                      if key.len() == 1 {
+                        vec![match_letter_state(
+                          *letter_states.get(&key.chars().next().unwrap()).unwrap()
+                        )]
+                      } else {
+                        vec![]
+                      }
+                    }
+                  >
                     if *key != "Backspace" {
                       <span>
                         { key }

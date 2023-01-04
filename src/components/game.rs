@@ -1,4 +1,6 @@
-use stylist::{style, yew::use_style, Style};
+use std::collections::HashMap;
+
+use stylist::{style, yew::use_style};
 use yew::prelude::*;
 
 use crate::types::letters::{match_letter_state, LetterState, Tile};
@@ -11,6 +13,8 @@ pub struct GameProps {
     pub current_row_index: usize,
     #[prop_or(false)]
     pub game_success: bool,
+    #[prop_or(HashMap::new())]
+    pub key_states: HashMap<char, LetterState>,
 }
 
 #[function_component(Game)]
@@ -20,6 +24,7 @@ pub fn game(props: &GameProps) -> Html {
         shake_row_index,
         current_row_index,
         game_success,
+        key_states,
     } = props;
 
     let board_style = use_style!(
@@ -96,11 +101,11 @@ pub fn game(props: &GameProps) -> Html {
       user-select: none;
       position: relative;
       
-      & .filled {
+      &.filled {
         animation: zoom 0.2s;
       }
 
-      & .front, .back {
+      & .front, & .back {
         box-sizing: border-box;
         display: inline-flex;
         justify-content: center;
@@ -119,7 +124,7 @@ pub fn game(props: &GameProps) -> Html {
         border: 2px solid #d3d6da;
       }
 
-      & .filled .front {
+      &.filled .front {
         border-color: #999;
       }
 
@@ -127,11 +132,11 @@ pub fn game(props: &GameProps) -> Html {
         transform: rotateX(180deg);
       }
 
-      & .revealed .front {
+      &.revealed .front {
         transform: rotateX(180deg);
       }
 
-      & .revealed .back {
+      &.revealed .back {
         transform: rotateX(0deg);
       }
 

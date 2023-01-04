@@ -29,7 +29,7 @@ impl Tile {
         }
     }
 
-    pub fn none() -> Self {
+    pub fn init() -> Self {
         Self {
             letter: None,
             state: LetterState::Initial,

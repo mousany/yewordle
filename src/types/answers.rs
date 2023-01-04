@@ -13,6 +13,7 @@ pub trait Answer {
     }
 }
 
+#[derive(Clone, Debug, PartialEq, Copy)]
 pub struct StandardWordle;
 
 impl StandardWordle {

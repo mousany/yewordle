@@ -513,15 +513,19 @@ video {
   --tw-backdrop-sepia:  ;
 }
 
-.text-3xl {
-  font-size: 1.875rem;
-  line-height: 2.25rem;
+.static {
+  position: static;
 }
 
-.font-bold {
-  font-weight: 700;
+.block {
+  display: block;
 }
 
-.underline {
-  text-decoration-line: underline;
+.table {
+  display: table;
+}
+
+.sepia {
+  --tw-sepia: sepia(100%);
+  filter: var(--tw-blur) var(--tw-brightness) var(--tw-contrast) var(--tw-grayscale) var(--tw-hue-rotate) var(--tw-invert) var(--tw-saturate) var(--tw-sepia) var(--tw-drop-shadow);
 }

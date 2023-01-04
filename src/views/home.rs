@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use yew::prelude::*;
 use yew_hooks::prelude::*;
 
@@ -43,7 +41,7 @@ pub fn home() -> Html {
         let allow_input = allow_input.clone();
         let current_row_index = current_row_index.clone();
         let game_success = game_success.clone();
-        let wordle = wordle.clone();
+        let wordle = wordle;
         Callback::from(move |_| {
             if board.current()[*current_row_index as usize]
                 .iter()

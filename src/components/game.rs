@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use stylist::{style, yew::use_style};
 use yew::prelude::*;
 
@@ -13,8 +11,6 @@ pub struct GameProps {
     pub current_row_index: usize,
     #[prop_or(false)]
     pub game_success: bool,
-    #[prop_or(HashMap::new())]
-    pub key_states: HashMap<char, LetterState>,
 }
 
 #[function_component(Game)]
@@ -24,7 +20,6 @@ pub fn game(props: &GameProps) -> Html {
         shake_row_index,
         current_row_index,
         game_success,
-        key_states,
     } = props;
 
     let board_style = use_style!(

@@ -1,9 +1,13 @@
 use yew::prelude::*;
 use yew_hooks::prelude::*;
 
-use crate::components::{
-    game::Game,
-    keyboard::{Keyboard, INIT_LETTER_STATES},
+use crate::{
+    components::{
+        game::Game,
+        keyboard::{Keyboard, INIT_LETTER_STATES},
+    },
+    composables::utils::set_timeout,
+    types::letters,
 };
 
 use crate::composables::core::certificate;
@@ -31,12 +35,53 @@ pub fn home() -> Html {
 
     let allow_input = use_bool_toggle(true);
 
+    let shake_row_index = use_state(|| Option::<usize>::None);
     let current_row_index = use_counter(0);
     let game_success = use_bool_toggle(false);
     let letter_states = use_map(INIT_LETTER_STATES.clone());
 
-    let complete_row = {
+    let shake_row = {
+        let current_row_index = current_row_index.clone();
+        let shake_row_index = shake_row_index.clone();
+        Callback::from(move |_: ()| {
+            shake_row_index.set(Some(*current_row_index as usize));
+            {
+                let shake_row_index = shake_row_index.clone();
+                set_timeout(
+                    move || {
+                        shake_row_index.set(None);
+                    },
+                    1000,
+                );
+            }
+        })
+    };
+
+    let dispatch_result = {
+        let board = board.clone();
         let letter_states = letter_states.clone();
+        let current_row_index = current_row_index.clone();
+        Callback::from(move |certificate_result: Vec<LetterState>| {
+            for (i, state) in certificate_result.iter().enumerate() {
+                board.update(*current_row_index as usize, {
+                    let mut row = board.current()[*current_row_index as usize].clone();
+                    let mut tile = &mut row[i];
+                    tile.state = *state;
+                    row
+                });
+            }
+            for (i, state) in certificate_result.iter().enumerate() {
+                letter_states.update(
+                    &board.current()[*current_row_index as usize][i]
+                        .letter
+                        .unwrap(),
+                    *state,
+                );
+            }
+        })
+    };
+
+    let complete_row = {
         let board = board.clone();
         let allow_input = allow_input.clone();
         let current_row_index = current_row_index.clone();
@@ -52,49 +97,49 @@ pub fn home() -> Html {
                     .map(|tile| tile.letter.unwrap())
                     .collect::<String>();
 
+                if !wordle.is_allowed(&guess) && guess != wordle.answer() {
+                    log::info!("Not allowed: {}", guess);
+                    shake_row.emit(());
+                    return;
+                }
+
                 let certificate_result = certificate(&guess, wordle.answer());
                 allow_input.set(false);
 
                 log::info!("Certificate result: {:?}", certificate_result);
+                dispatch_result.emit(certificate_result.clone());
 
                 if certificate_result
                     .iter()
                     .all(|state| *state == LetterState::Correct)
                 {
                     log::info!("Correct!");
-                    for (i, state) in certificate_result.iter().enumerate() {
-                        letter_states.update(
-                            &board.current()[*current_row_index as usize][i]
-                                .letter
-                                .unwrap(),
-                            *state,
-                        );
+                    {
+                        let game_success = game_success.clone();
+                        set_timeout(
+                            move || {
+                                game_success.set(true);
+                            },
+                            1600,
+                        )
                     }
-                    game_success.set(true);
                 } else if (*current_row_index as usize) < wordle.trial_bound() - 1 {
                     log::info!("Incorrect!");
-                    for (i, state) in certificate_result.iter().enumerate() {
-                        board.update(*current_row_index as usize, {
-                            let mut row = board.current()[*current_row_index as usize].clone();
-                            let mut tile = &mut row[i];
-                            tile.state = *state;
-                            row
-                        });
-                    }
-                    for (i, state) in certificate_result.iter().enumerate() {
-                        letter_states.update(
-                            &board.current()[*current_row_index as usize][i]
-                                .letter
-                                .unwrap(),
-                            *state,
+                    current_row_index.increase();
+                    {
+                        let allow_input = allow_input.clone();
+                        set_timeout(
+                            move || {
+                                allow_input.set(true);
+                            },
+                            1600,
                         );
                     }
-                    current_row_index.increase();
-                    allow_input.set(true);
                 } else {
                     log::info!("Game over!");
                 }
             } else {
+                shake_row.emit(());
                 log::info!("Not enough letters");
             }
         })
@@ -155,6 +200,7 @@ pub fn home() -> Html {
           <Game
             board={board.current().clone()}
             current_row_index={*current_row_index as usize}
+            shake_row_index={*shake_row_index}
             game_success={*game_success}
           />
         </div>

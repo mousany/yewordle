@@ -6,6 +6,7 @@ use crate::types::letters::{match_letter_state, LetterState, Tile};
 #[derive(Clone, Debug, PartialEq, Properties)]
 pub struct GameProps {
     pub board: Vec<Vec<Tile>>,
+    #[prop_or(None)]
     pub shake_row_index: Option<usize>,
     #[prop_or(0)]
     pub current_row_index: usize,

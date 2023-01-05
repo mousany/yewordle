@@ -1,4 +1,4 @@
-use crate::types::words::STANDARD_WORDS;
+use crate::types::{guesses::STANDARD_GUESSES, words::STANDARD_WORDS};
 use chrono::prelude::*;
 
 pub trait Answer {
@@ -11,6 +11,8 @@ pub trait Answer {
     fn trial_bound(&self) -> usize {
         6
     }
+
+    fn is_allowed(&self, guess: &str) -> bool;
 }
 
 #[derive(Clone, Debug, PartialEq, Copy)]
@@ -32,6 +34,7 @@ impl Answer for StandardWordle {
             days -= STANDARD_WORDS.len() as i64;
         }
         STANDARD_WORDS[days as usize]
+        // "comet"
     }
 
     fn word_length(&self) -> usize {
@@ -40,5 +43,18 @@ impl Answer for StandardWordle {
 
     fn trial_bound(&self) -> usize {
         6
+    }
+
+    fn is_allowed(&self, guess: &str) -> bool {
+        assert_eq!(guess.len(), self.word_length());
+
+        let guess_lower = guess.to_lowercase();
+
+        STANDARD_GUESSES
+            .iter()
+            .any(|guess_word: &&str| guess_word == &guess_lower)
+            || STANDARD_WORDS
+                .iter()
+                .any(|word: &&str| word == &guess_lower)
     }
 }

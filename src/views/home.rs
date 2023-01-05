@@ -5,9 +5,10 @@ use crate::{
     components::{
         game::Game,
         keyboard::{Keyboard, INIT_LETTER_STATES},
+        message::Message,
     },
     composables::utils::set_timeout,
-    types::letters,
+    types::letters::match_letter_icon,
 };
 
 use crate::composables::core::certificate;
@@ -40,6 +41,9 @@ pub fn home() -> Html {
     let game_success = use_bool_toggle(false);
     let letter_states = use_map(INIT_LETTER_STATES.clone());
 
+    let hint_message = use_state(|| Option::<String>::None);
+    let performance_grid = use_state(|| Option::<String>::None);
+
     let shake_row = {
         let current_row_index = current_row_index.clone();
         let shake_row_index = shake_row_index.clone();
@@ -54,6 +58,38 @@ pub fn home() -> Html {
                     1000,
                 );
             }
+        })
+    };
+
+    let show_hint_message = {
+        let hint_message = hint_message.clone();
+        Callback::from(move |args: (String, i64)| {
+            let (message, timeout) = args;
+            hint_message.set(Some(message));
+            if timeout > 0 {
+                let hint_message = hint_message.clone();
+                set_timeout(
+                    move || {
+                        hint_message.set(None);
+                    },
+                    timeout as u64,
+                );
+            }
+        })
+    };
+
+    let generate_performance_grid = {
+        let board = board.clone();
+        let current_row_index = current_row_index.clone();
+        Callback::from(move |_: ()| -> String {
+            let mut grid = String::new();
+            for row in board.current()[..*current_row_index as usize + 1].iter() {
+                for tile in row.iter() {
+                    grid.push_str(&match_letter_icon(tile.state));
+                }
+                grid.push('\n');
+            }
+            grid
         })
     };
 
@@ -87,6 +123,9 @@ pub fn home() -> Html {
         let current_row_index = current_row_index.clone();
         let game_success = game_success.clone();
         let wordle = wordle;
+        let show_hint_message = show_hint_message;
+        let generate_performance_grid = generate_performance_grid;
+        let performance_grid = performance_grid.clone();
         Callback::from(move |_| {
             if board.current()[*current_row_index as usize]
                 .iter()
@@ -100,6 +139,7 @@ pub fn home() -> Html {
                 if !wordle.is_allowed(&guess) && guess != wordle.answer() {
                     log::info!("Not allowed: {}", guess);
                     shake_row.emit(());
+                    show_hint_message.emit(("Not in word list".to_string(), 1000));
                     return;
                 }
 
@@ -116,8 +156,17 @@ pub fn home() -> Html {
                     log::info!("Correct!");
                     {
                         let game_success = game_success.clone();
+                        let show_hint_message = show_hint_message.clone();
+                        let generate_performance_grid = generate_performance_grid.clone();
+                        let current_row_index = current_row_index.clone();
+                        let performance_grid = performance_grid.clone();
                         set_timeout(
                             move || {
+                                performance_grid.set(Some(generate_performance_grid.emit(())));
+                                show_hint_message.emit((
+                                    wordle.gamer_level(*current_row_index as usize).to_string(),
+                                    -1,
+                                ));
                                 game_success.set(true);
                             },
                             1600,
@@ -137,10 +186,12 @@ pub fn home() -> Html {
                     }
                 } else {
                     log::info!("Game over!");
+                    show_hint_message.emit((wordle.answer().to_uppercase(), -1));
                 }
             } else {
                 shake_row.emit(());
                 log::info!("Not enough letters");
+                show_hint_message.emit(("Not enough letters".to_string(), 1000));
             }
         })
     };
@@ -186,6 +237,7 @@ pub fn home() -> Html {
 
     html! {
       <>
+        <Message message={(*hint_message).clone()} grid={(*performance_grid).clone()} />
         <header>
           <h1>{ "YEWORDLE" }</h1>
           <a id="source-link"

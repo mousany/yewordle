@@ -15,6 +15,15 @@ pub fn match_letter_state(letter_state: LetterState) -> String {
     }
 }
 
+pub fn match_letter_icon(letter_state: LetterState) -> String {
+    match letter_state {
+        LetterState::Initial => "".to_string(),
+        LetterState::Correct => "🟩".to_string(),
+        LetterState::Present => "🟨".to_string(),
+        LetterState::Absent => "⬜".to_string(),
+    }
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub struct Tile {
     pub letter: Option<char>,

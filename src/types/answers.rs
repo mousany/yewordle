@@ -1,4 +1,6 @@
-use crate::types::{guesses::STANDARD_GUESSES, words::STANDARD_WORDS};
+use crate::types::{
+    gamer_levels::STANDARD_GAMER_LEVELS, guesses::STANDARD_GUESSES, words::STANDARD_WORDS,
+};
 use chrono::prelude::*;
 
 pub trait Answer {
@@ -13,6 +15,10 @@ pub trait Answer {
     }
 
     fn is_allowed(&self, guess: &str) -> bool;
+
+    fn gamer_level(&self, index: usize) -> &str {
+        STANDARD_GAMER_LEVELS[index]
+    }
 }
 
 #[derive(Clone, Debug, PartialEq, Copy)]

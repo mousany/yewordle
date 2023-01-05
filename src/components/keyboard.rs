@@ -98,7 +98,7 @@ pub fn keyboard(props: &KeyboardProps) -> Html {
               if row_index == 1 {
                 <div class={spacer_style.clone()}></div>
               }
-              { for row.iter().enumerate().map(|(col_index, key)| {
+              { for row.iter().enumerate().map(|(_col_index, key)| {
                 html! {
                   <button
                     onclick={

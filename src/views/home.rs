@@ -1,3 +1,6 @@
+use gloo::events::EventListener;
+use wasm_bindgen::JsCast;
+use web_sys::window;
 use yew::prelude::*;
 use yew_hooks::prelude::*;
 
@@ -123,7 +126,7 @@ pub fn home() -> Html {
         let current_row_index = current_row_index.clone();
         let game_success = game_success.clone();
         let wordle = wordle;
-        let show_hint_message = show_hint_message;
+        let show_hint_message = show_hint_message.clone();
         let generate_performance_grid = generate_performance_grid;
         let performance_grid = performance_grid.clone();
         Callback::from(move |_| {
@@ -198,7 +201,7 @@ pub fn home() -> Html {
 
     let onkeyup = {
         let board = board.clone();
-        let allow_input = allow_input;
+        let allow_input = allow_input.clone();
         let current_row_index = current_row_index.clone();
         Callback::from(move |key: String| {
             if *allow_input {
@@ -218,7 +221,7 @@ pub fn home() -> Html {
                     tile.letter = None;
                     board.update(*current_row_index as usize, row);
                 } else if key.len() == 1 && key.chars().next().unwrap().is_alphabetic() {
-                    let letter = key.chars().next().unwrap();
+                    let letter = key.to_uppercase().chars().next().unwrap();
                     if board.current()[*current_row_index as usize]
                         .iter()
                         .all(|tile| tile.letter.is_some())
@@ -235,6 +238,27 @@ pub fn home() -> Html {
         })
     };
 
+    let keyboardup_listener = {
+        if let Some(window) = window() {
+            let onkeyup = onkeyup.clone();
+            Some(EventListener::new(&window, "keyup", move |event| {
+                let event = event.dyn_ref::<web_sys::KeyboardEvent>().unwrap();
+                // log::info!("Key up at {:?}", event.key());
+                onkeyup.emit(event.key());
+            }))
+        } else {
+            allow_input.set(false);
+            show_hint_message.emit(("Failed to mount on window".to_string(), -1));
+            None
+        }
+    };
+
+    use_unmount(move || {
+        if let Some(listener) = keyboardup_listener {
+            listener.forget();
+        }
+    });
+
     html! {
       <>
         <Message
@@ -244,7 +268,7 @@ pub fn home() -> Html {
         <header>
           <h1>{ "YEWORDLE" }</h1>
           <a id="source-link"
-            href=""
+            href="https://github.com/yanglinshu/yewordle"
             target="_blank"
           >{ "Source" }</a>
         </header>

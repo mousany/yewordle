@@ -31,6 +31,7 @@ pub struct Tile {
 }
 
 impl Tile {
+    #[allow(dead_code)]
     pub fn new(letter: char) -> Self {
         Self {
             letter: Some(letter),

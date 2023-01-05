@@ -1,4 +1,7 @@
-use gloo::events::EventListener;
+use gloo::{
+    events::EventListener,
+    history::{BrowserHistory, History},
+};
 use wasm_bindgen::JsCast;
 use web_sys::window;
 use yew::prelude::*;
@@ -21,10 +24,35 @@ use crate::types::{
     letters::Tile,
 };
 
+fn get_word_from_url(word_length: usize) -> Option<String> {
+    let location = BrowserHistory::new().location();
+    let query_str = &location.query_str()[1..];
+
+    if !query_str.is_empty() {
+        if let Ok(word) = base64::decode(query_str) {
+            let word = String::from_utf8(word).unwrap();
+            log::info!("word: {:?}", word);
+            if word.is_ascii() && word.len() == word_length {
+                return Some(word);
+            }
+        }
+    }
+
+    None
+}
+
 /// Home page
 #[function_component(Home)]
 pub fn home() -> Html {
     let wordle = StandardWordle::new();
+    let wordle_answer = {
+        if let Some(word) = get_word_from_url(wordle.word_length()) {
+            word
+        } else {
+            wordle.answer().to_string()
+        }
+    };
+
     let board = use_list({
         let mut board = Vec::new();
         for _ in 0..wordle.trial_bound() {
@@ -126,6 +154,7 @@ pub fn home() -> Html {
         let current_row_index = current_row_index.clone();
         let game_success = game_success.clone();
         let wordle = wordle;
+        let wordle_answer = wordle_answer.clone();
         let show_hint_message = show_hint_message.clone();
         let generate_performance_grid = generate_performance_grid;
         let performance_grid = performance_grid.clone();
@@ -139,14 +168,14 @@ pub fn home() -> Html {
                     .map(|tile| tile.letter.unwrap())
                     .collect::<String>();
 
-                if !wordle.is_allowed(&guess) && guess != wordle.answer() {
+                if !wordle.is_allowed(&guess) && guess != wordle_answer {
                     log::info!("Not allowed: {}", guess);
                     shake_row.emit(());
                     show_hint_message.emit(("Not in word list".to_string(), 1000));
                     return;
                 }
 
-                let certificate_result = certificate(&guess, wordle.answer());
+                let certificate_result = certificate(&guess, &wordle_answer);
                 allow_input.set(false);
 
                 log::info!("Certificate result: {:?}", certificate_result);
@@ -189,7 +218,7 @@ pub fn home() -> Html {
                     }
                 } else {
                     log::info!("Game over!");
-                    show_hint_message.emit((wordle.answer().to_uppercase(), -1));
+                    show_hint_message.emit((wordle_answer.to_uppercase(), -1));
                 }
             } else {
                 shake_row.emit(());
@@ -273,7 +302,7 @@ pub fn home() -> Html {
           >{ "Source" }</a>
         </header>
         <div>
-          {wordle.answer()}
+          {wordle_answer}
         </div>
         <div>
           <Game

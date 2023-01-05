@@ -2,7 +2,6 @@ use crate::types::{
     gamer_levels::STANDARD_GAMER_LEVELS, guesses::STANDARD_GUESSES, words::STANDARD_WORDS,
 };
 use chrono::prelude::*;
-
 pub trait Answer {
     fn answer(&self) -> &str;
 

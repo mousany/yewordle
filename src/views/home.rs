@@ -237,7 +237,10 @@ pub fn home() -> Html {
 
     html! {
       <>
-        <Message message={(*hint_message).clone()} grid={(*performance_grid).clone()} />
+        <Message
+          message={(*hint_message).clone()}
+          grid={(*performance_grid).clone()}
+        />
         <header>
           <h1>{ "YEWORDLE" }</h1>
           <a id="source-link"

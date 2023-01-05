@@ -25,25 +25,51 @@ pub fn message(props: &MessageProps) -> Html {
           z-index: 2;
           border-radius: 4px;
           transform: translateX(-50%);
-          transition: opacity 0.3s ease-out;
-          font-weight: 600;
+          font-weight: 600;          
+        }
+      "#
+    );
+
+    let message_transition_style = use_style!(
+        r#"
+        & {
+          transition: opacity 0.5s ease;
+        }
+
+        &.show {
+          opacity: 1;
+        }
+
+        &.hide {
+          opacity: 0;
         }
       "#
     );
 
     html! {
       <>
-        if let Some(message) = message {
-          <div class={message_style}>
+        <div
+          class={
+            vec![vec![message_transition_style.get_class_name().to_string()]
+              , {
+                if message.is_some() {
+                  vec!["show".to_string(), message_style.get_class_name().to_string()]
+                } else {
+                  vec!["hide".to_string()]
+                }
+              }
+            ].concat()
+          }
+        >
+          if let Some(message) = message {
             { message }
-
-            if let Some(grid) = grid {
-              <pre>
-                { grid }
-              </pre>
-            }
-          </div>
-        }
+          }
+          if let Some(grid) = grid {
+            <pre>
+              { grid }
+            </pre>
+          }
+        </div>
       </>
     }
 }

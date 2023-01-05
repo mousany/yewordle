@@ -26,9 +26,10 @@ use crate::types::{
 
 fn get_word_from_url(word_length: usize) -> Option<String> {
     let location = BrowserHistory::new().location();
-    let query_str = &location.query_str()[1..];
+    let query_str = location.query_str();
 
     if !query_str.is_empty() {
+        let query_str = &query_str[1..];
         if let Ok(word) = base64::decode(query_str) {
             let word = String::from_utf8(word).unwrap();
             log::info!("word: {:?}", word);
@@ -154,7 +155,7 @@ pub fn home() -> Html {
         let current_row_index = current_row_index.clone();
         let game_success = game_success.clone();
         let wordle = wordle;
-        let wordle_answer = wordle_answer.clone();
+        let wordle_answer = wordle_answer;
         let show_hint_message = show_hint_message.clone();
         let generate_performance_grid = generate_performance_grid;
         let performance_grid = performance_grid.clone();
@@ -301,9 +302,9 @@ pub fn home() -> Html {
             target="_blank"
           >{ "Source" }</a>
         </header>
-        <div>
-          {wordle_answer}
-        </div>
+        // <div>
+        //  {wordle_answer}
+        // </div>
         <div>
           <Game
             board={board.current().clone()}

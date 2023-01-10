@@ -1,0 +1,11 @@
+/.vscode
+/dist
+/node_modules
+/.git
+/target
+
+.gitignore
+.gitlab-ci.yml
+LICENSE-MIT
+LICENSE-APACHE
+README.md
